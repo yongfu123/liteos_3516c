@@ -1,0 +1,51 @@
+LIBDEP = --start-group $(LITEOS_LIBS) --end-group
+LDFLAGS := $(LITEOS_LDFLAGS) --gc-sections
+
+CFLAGS += -DCFG_18EV2DVS_VER_A
+CFLAGS += -DCFG_SUPPORT_WIFI_STA
+
+# target source
+SRCS  += $(REL_INIT)/sdk_init.c
+
+SRCS  += $(SAMPLE_DIR)/comm/app_init.c
+SRCS  += $(SAMPLE_DIR)/comm/common.c
+
+#SRCS  +=$(shell find $(SAMPLE_DIR)/comm/ -name '*.c')
+SRCS  +=$(shell find $(SAMPLE_DIR)/comm/ipmsg/ -name '*.c')
+SRCS  +=$(shell find $(SAMPLE_DIR)/comm/mcu_uart/ -name '*.c')
+SRCS  +=$(shell find $(SAMPLE_DIR)/comm/net/ -name '*.c')
+
+OBJS  := $(SRCS:%.c=%.o)
+OBJS += $(COMM_OBJ)
+
+
+BIN := $(TARGET).bin
+MAP := $(TARGET).map
+ASM := $(TARGET).asm
+
+.PHONY : clean all
+
+all: $(BIN)
+	
+$(BIN):$(TARGET)
+	@$(OBJCOPY) -O binary $(TARGET) $(BIN)
+
+$(warning SDK_LIB $(SDK_LIB))
+$(warning AUDIO_LIB $(AUDIO_LIB))
+$(warning LIBDEP $(LIBDEP))
+
+$(TARGET):$(OBJS)
+	@$(LD) $(LDFLAGS) -Map=$(MAP) -o $(TARGET) $(OBJS) $(SDK_LIB) $(AUDIO_LIB) $(LIBDEP) 
+	@arm-hisiv500-linux-objdump -d $(TARGET) >$(ASM)
+$(OBJS):%.o:%.c
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	@rm -f $(TARGET) $(BIN) $(MAP) *.asm
+	@rm -f $(OBJS)
+
+cleanstream:
+	@rm -f *.h264
+	@rm -f *.jpg
+	@rm -f *.mjp
+	@rm -f *.mp4

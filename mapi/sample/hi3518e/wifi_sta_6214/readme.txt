@@ -1,0 +1,1 @@
+编译方法：执行make liteos_image，根据提示选择。不需要make clean。

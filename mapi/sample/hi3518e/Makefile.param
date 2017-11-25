@@ -1,0 +1,51 @@
+# Hisilicon Hi35xx sample Makefile.param
+
+ifeq ($(MAPI_PARAM_FILE), )
+     MAPI_PARAM_FILE:=../../../../Makefile.param
+     include $(MAPI_PARAM_FILE)
+endif
+
+export MPP_RELEASE:=$(SDK_PATH)/mpp/release/hi3518e/HuaweiLite
+export MPP_INIT:=$(MPP_RELEASE)/init
+export MPP_LIB:=$(MPP_RELEASE)/lib
+export MPP_INC:=$(MPP_RELEASE)/include
+export AUDIO_PATH:=$(SDK_PATH)/mpp/code/shelf/audio/component/lib/hi3519v101/$(CROSS)/HuaweiLite
+export AUDIO_COMPONENT_INC:=$(SDK_PATH)/mapi/code/mediaserver/component/audio/include/
+export AUDIO_COMPONENT_INNER_INC := $(SDK_PATH)/mapi/code/mediaserver/component/audio/inner/include/
+
+
+CFLAGS += -I$(REL_INC)
+CFLAGS += -I$(MPP_INC)
+#CFLAGS += -I$(REL_INC)/temp
+CFLAGS += -I$(AUDIO_COMPONENT_INC)
+CFLAGS += -I$(AUDIO_COMPONENT_INNER_INC)
+CFLAGS += -I$(AUDIO_PATH)/aacenc/include
+CFLAGS += -I$(SDK_PATH)/mapi/code/mediaserver/component/audio/only2fae/include/
+CFLAGS += -I$(SDK_PATH)/mapi/code/mediaserver/configs/sensor/include
+
+CFLAGS += -I$(SDK_PATH)/osdrv/hi3518e/HuaweiLite/opensource/liteos/liteos/kernel/include
+CFLAGS += -I$(SDK_PATH)/osdrv/hi3518e/HuaweiLite/opensource/liteos/liteos/drivers/mmc/include/mmc
+CFLAGS += -I$(SDK_PATH)/osdrv/hi3518e/HuaweiLite/opensource/liteos/liteos/drivers/mmc/host/himci
+CFLAGS += -I$(SDK_PATH)/osdrv/hi3518e/HuaweiLite/opensource/u-boot/u-boot-2010.06/drivers/mmc  
+
+#hdx add ###############
+CFLAGS += -I$(SDK_PATH)/mapi/sample/hi3518e/comm/
+CFLAGS += -I$(SDK_PATH)/mapi/sample/hi3518e/comm/ipmsg/
+CFLAGS += -I$(SDK_PATH)/mapi/sample/hi3518e/comm/mcu_uart/
+CFLAGS += -I$(SDK_PATH)/mapi/sample/hi3518e/comm/net/
+CFLAGS += -I$(SDK_PATH)/mapi/sample/hi3518e/comm/8801/
+#CFLAGS += -I$(SDK_PATH)/mapi/tools/$(OSTYPE)/tools_shell_cmd.h
+#end hdx add#############
+
+CFLAGS += -I$(SDK_PATH)/source/component/livestream/rtspserver/include
+CFLAGS += -I$(SDK_PATH)/source/thirdparty/cJSON/include
+CFLAGS += -I$(SDK_PATH)/source/thirdparty/coap/include
+
+
+$(warning AUDIO_CFLAGS $(CFLAGS))
+
+
+include $(PWD)/../../$(OSTYPE).param
+
+			
+

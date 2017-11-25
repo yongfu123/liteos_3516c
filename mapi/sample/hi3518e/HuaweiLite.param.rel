@@ -1,0 +1,30 @@
+########## select sensor type for your sample #############
+#export SENSOR_TYPE ?= SONY_IMX117_LVDS_4K_30FPS
+export SENSOR_TYPE ?= PANASONIC_MN34120_LVDS_4K_30FPS
+#########################################################
+
+SDK_LIB:= -L$(REL_LIB) -L$(REL_LIB)/extdrv
+
+ifeq ($(SENSOR_TYPE), SONY_IMX117_LVDS_4K_30FPS)
+SENSOR_LIBS := $(SENSOR_CFG_PATH)/$(HIARCH)/sony_imx117/libsns_cfg_imx117.a
+SENSOR_LIBS += $(SENSOR_PATH)/sony_imx117/libsns_imx117.a
+SDK_LIB += -lhi_ssp_sony
+endif
+
+ifeq ($(SENSOR_TYPE), PANASONIC_MN34120_LVDS_4K_30FPS)
+SENSOR_LIBS := $(SENSOR_CFG_PATH)/$(HIARCH)/panasonic_mn34120/libsns_cfg_mn34120.a
+SENSOR_LIBS += $(SENSOR_PATH)/panasonic_mn34120/libsns_mn34120.a
+SDK_LIB += -lhi_ssp_3wire
+endif
+
+SDK_LIB += --start-group -ldatafifo -lhi3559_mapi_sys -lhi3559_mapi_vcap -lhi3559_mapi_venc \
+           -lhi3559_mapi_disp -lhi3559_mapi_vproc -lhi3559_mapi_acap -lhi3559_mapi_aenc \
+           -lhi3559_media_server -lipcmsg -lhi3559sdk  --end-group
+SDK_LIB += $(SENSOR_LIBS)
+SDK_LIB += -L$(REL_LIB) -lhi3559_mapi_isp
+SDK_LIB += -lhi_adv7179 -lhi_sil9136 -lhi_pwm
+
+AUDIO_LIB :=
+AUDIO_LIB += -lhi3559_mapi_inner_audio_component
+
+

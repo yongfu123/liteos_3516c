@@ -1,0 +1,58 @@
+
+ifeq ($(HIARCH), hi3559)
+    export LITEOS_PLATFORM?=hi3559
+endif
+
+ifeq ($(HIARCH), hi3518e)
+    export LITEOS_PLATFORM?=hi3518e
+endif 
+
+##############################################################################
+export KERNEL_NAME=liteos
+
+# Allocated the kernel position
+ifeq ($(MAPI_BUILD), y)
+    ifneq ($(shell ls $(HIWORK_PATH)/dualos$(HIARCH)$(CVER)/platform/liteos), )
+        export KERNEL_ROOT?=$(HIWORK_PATH)/dualos$(HIARCH)$(CVER)/platform/liteos/$(KERNEL_NAME)
+    else
+        export KERNEL_ROOT?=$(SDK_PATH)/osdrv/$(HIARCH)v200/opensource/liteos/$(KERNEL_NAME)
+    endif
+else
+    export KERNEL_ROOT?=$(SDK_PATH)/osdrv/platform/liteos/$(KERNEL_NAME)
+endif
+
+##############################################################################
+
+export LITEOSTOPDIR=$(KERNEL_ROOT)
+include $(LITEOSTOPDIR)/config.mk
+
+export CROSS := $(CROSS_COMPILE)
+export CC
+export AR
+
+ifneq ($(MAPI_CPU_TYPE), dual)
+	export REL_INC := $(REL_PATH)/slave/include
+	export REL_LIB := $(REL_PATH)/slave/lib
+	export REL_KO := $(REL_PATH)/slave/lib
+	export REL_INIT := $(REL_PATH)/slave/init
+else
+	export REL_INC := $(REL_PATH)/host/include
+	export REL_LIB := $(REL_PATH)/host/lib
+	export REL_KO := $(REL_PATH)/host/lib
+	export REL_INIT := $(REL_PATH)/host/init
+endif
+
+export AUDIO_PATH:=$(SDK_PATH)/mapi/release/$(HIARCH)/$(MAPI_CPU_TYPE)/slave/only2fae/audio/lib/$(CROSS)/HuaweiLite
+
+ifeq ($(HIARCH),hi3518e)
+	LIBS_CFLAGS += -mcpu=arm926ej-s
+else
+	LIBS_CFLAGS += -mcpu=cortex-a17
+endif
+
+export CFLAGS := -fno-builtin -nostdinc -nostdlib
+CFLAGS += $(LITEOS_MACRO) $(LITEOS_OSDRV_INCLUDE) $(LITEOS_USR_INCLUDE)
+CFLAGS += $(LIBS_CFLAGS)
+CFLAGS += $(MAPI_CFLAGS)
+CFLAGS += -D__HuaweiLite__
+

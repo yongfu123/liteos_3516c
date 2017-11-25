@@ -1,0 +1,71 @@
+# Makefile.param 
+# Only global variable should be defined here.
+# All the variables must be used as "export" and "?=".
+# Otherwise, there will be some errors, when Makefile.param is nested.
+
+#export HIWORK_PATH?=/hiwork
+
+export MAPI_BUILD=y
+
+# use HIARCH indicate chip, use libc to choose cross compiler.
+# hi3559 hi3518e
+export HIARCH?=hi3518e
+
+# use LIBC indicate libc, use libc to choose cross compiler.
+# uclibc or glibc only for Linux
+export LIBC?=glibc
+
+# linux or HuaweiLite
+#export OSTYPE?=HuaweiLite
+
+# Whether open -g 
+export HIGDB?=y
+
+ifeq ($(HIARCH), )
+$(error HIARCH not defined! Please check!)
+endif
+
+ifeq ($(HIARCH), hi3518e)
+	export MAPI_CPU_TYPE?=signal
+else
+	export MAPI_CPU_TYPE?=dual
+endif
+# Get the local SDK_ROOT path or RELEASE_ROOT path by PARAM_FILE.
+# MAPI_PARAM_FILE is configed at Makefile before include this file
+export MAPI_PARAM_FILE
+export SDK_PATH?=$(shell cd $(shell pwd)/`dirname $(MAPI_PARAM_FILE)`/..; pwd)
+export NDK_PATH?=$(shell cd $(shell pwd)/`dirname $(MAPI_PARAM_FILE)`; pwd)
+export DRV_ROOT?=$(SDK_PATH)/drv
+export REL_PATH?=$(NDK_PATH)/release/$(HIARCH)/$(MAPI_CPU_TYPE)
+export SAMPLE_DIR?=$(NDK_PATH)/sample/$(HIARCH)
+export SENSOR_CFG_PATH?=$(NDK_PATH)/code/mediaserver/configs/sensor
+export SENSOR_PATH?=$(NDK_PATH)/code/mediaserver/component/sensor/$(HIARCH)
+export OSAL_ROOT?=$(SDK_PATH)/osal
+export DIS_CFG_PATH?=$(NDK_PATH)/code/mediaserver/configs/dis 
+
+# use C01 to indicate uclibc, C02 to  indicate glibc, C00 to indicate FPGA.
+DBG_FLAG?=0
+ifeq ($(LIBC),glibc)
+    ifeq ($(FPGA), y)
+        export CVER?=.C$(DBG_FLAG)3
+    else
+        export CVER?=.C$(DBG_FLAG)2
+    endif
+else ifeq ($(FPGA), y)
+    export CVER?=.C$(DBG_FLAG)0
+else
+    export CVER?=.C$(DBG_FLAG)1
+endif
+
+export MAPI_CFLAGS:= -Wall
+
+ifeq ($(HIGDB), y)
+	MAPI_CFLAGS += -g
+endif
+
+# common CFLAGS
+export LIBS_CFLAGS := -mno-unaligned-access -fno-aggressive-loop-optimizations -ffunction-sections -fdata-sections
+#export LIBS_LD_CFLAGS := --gc-sections
+
+# include the config file of platform
+include $(NDK_PATH)/$(OSTYPE).param

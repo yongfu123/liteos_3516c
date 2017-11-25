@@ -1,0 +1,28 @@
+1）地址空间说明
+	|   0~0x3FFFF  |     0x40000~0x2FFFFF    |    0x300000~0x6FFFFF   |
+	|--------------|-------------------------|------------------------|
+	|   uboot      |             APP         |          WiFi Image    |
+
+
+2）烧写步骤
+	
+（1）烧写MCU程序。这一步只有在全新的板子或者需要更换mcu程序时才需要做。烧写MCU的方法，请参考相关文档。
+	
+（2）烧写uboot_hi3518ev200_hcc_full.bin。
+	 打开HiTool，选择烧写FastBoot。Flash类型选择SPI。选择uboot_hi3518ev200_hcc_full.bin文件。点击烧写。
+	
+（3）烧写APP。
+	 打开HiTool，选择按地址烧写。Flash类型选择SPI。地址填0x40000，长度填0x200000，选择sample.bin。点击烧写。
+	
+（4）设置环境变量:
+	 
+上电时，按住键盘的Enter键，进入uboot环境，设置bootcmd和bootimg。
+	 
+setenv bootcmd 'sf probe 0; sf read 0x80008000 0x40000 0x200000; go 0x80008000';sa
+	 
+setenv bootimg 'sf probe 0; sf read 0x80008000 0x300000 0x250000; go 0x80008000';sa
+	 
+设置完之后，输入reset，让板端重启。至此烧写完成。
+
+
+

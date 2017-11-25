@@ -1,0 +1,62 @@
+########## select sensor type for your sample #############
+#export SENSOR_TYPE ?= SONY_IMX117_LVDS_4K_30FPS
+#export SENSOR_TYPE ?= PANASONIC_MN34120_LVDS_4K_30FPS
+export SENSOR_TYPE ?= OMNIVISION_OV9732_MIPI_720P_30FPS
+#########################################################
+
+#-lhi3518e_mapi_acap -lhi3518e_mapi_aenc -lhi3518e_media_server
+
+SDK_LIB := -L$(REL_LIB) --start-group -lhi3518e_mapi_sys -lhi3518e_mapi_vcap -lhi3518e_mapi_venc \
+           -lhi3518e_mapi_disp -lhi3518e_mapi_vproc \
+           -lhi3518esdk  -lhi_pwm --end-group
+#SDK_LIB += -lhi_adv7179 -lhi_sil9136 
+
+##########################################################
+#wifi
+##########################################################
+#SDK_LIB += $(SDK_PATH)/mapi/sample/hi3518e/wifi_sta/HuaweiLite/libwifi.a
+#SDK_LIB += $(SDK_PATH)/mapi/sample/hi3518e/wifi_sta_8801/HuaweiLite/libmhd.a
+#SDK_LIB += $(SDK_PATH)/mapi/sample/hi3518e/wifi_sta_8801/HuaweiLite/libmhd_util.a
+SDK_LIB += $(SDK_PATH)/mapi/sample/hi3518e/comm/8801/libwlan.a
+SDK_LIB += $(SDK_PATH)/mapi/sample/hi3518e/comm/6214/*.a
+
+#rtsp
+SDK_LIB += $(SDK_PATH)/source/component/livestream/rtspserver/lib/*.a
+
+
+ifeq ($(SENSOR_TYPE), SONY_IMX117_LVDS_4K_30FPS)
+SDK_LIB += $(SENSOR_CFG_PATH)/$(HIARCH)/sony_imx117/libsns_cfg_imx117.a
+SDK_LIB += $(SENSOR_PATH)/sony_imx117/libsns_imx117.a
+SDK_LIB += -lhi_ssp_sony
+endif
+
+ifeq ($(SENSOR_TYPE), PANASONIC_MN34120_LVDS_4K_30FPS)
+SDK_LIB += $(SENSOR_CFG_PATH)/$(HIARCH)/panasonic_mn34120/libsns_cfg_mn34120.a
+SDK_LIB += $(SENSOR_PATH)/panasonic_mn34120/libsns_mn34120.a
+SDK_LIB += -lhi_ssp_3wire
+endif
+
+ifeq ($(SENSOR_TYPE), OMNIVISION_OV9732_MIPI_720P_30FPS)
+SDK_LIB += -L$(SENSOR_CFG_PATH)/$(HIARCH)/ov9732 -lsns_cfg_ov9732
+SDK_LIB += -L$(SENSOR_PATH)/ov9732 -lsns_ov9732
+#SDK_LIB += -lhi_ssp_3wire
+endif
+
+SDK_LIB += -L$(REL_LIB) --start-group -lhi3518e_mapi_isp -lhi_mipi -lhi_osal -lhi3518e_venc -lhi3518e_h264e -lhi3518e_mapi_acap -lhi3518e_mapi_aenc -lhi3518e_mapi_ao --end-group
+
+#-l_cmoscfg -l_hiae -l_hiaf -l_hiawb \
+#-l_hidefog -l_iniparser -lacodec -ldnvqe -lhi_cipher -lhi3518e_adec -lhi3518e_aenc \
+#-lhi3518e_ai -lhi3518e_aio -lhi3518e_ao -lhi3518e_base -lhi3518e_chnl -lhi3518e_h264e \
+#-lhi3518e_ir -lhi3518e_isp -lhi3518e_ive -lhi3518e_jpege -lhi3518e_photo -lhi3518e_rc -lhi3518e_region \
+#-lhi3518e_rtc -lhi3518e_sys -lhi3518e_tde -lhi3518e_venc -lhi3518e_vgs -lhi3518e_viu -lhi3518e_vou \
+#-lhi3518e_vpss -lhi3518e_wdt -lhifb -lisp -live -lmd -lmpi -lmpi_photo -ltde -lupvqe -lVoiceEngine \
+#-lhi_adv7179 -lhi_piris -lhi_pwm -lhi_sensor_i2c -lhi_sensor_spi -lhi_sil9024 -lhi_tlv320aic31 
+
+#SDK_LIB += -L$(MPP_LIB) -l_hiawb
+
+
+AUDIO_LIB :=
+AUDIO_LIB += -lhi3518e_mapi_audio_component -laacenc -laacdec
+#AUDIO_LIB += -lhi3559_mapi_audio_component
+#AUDIO_LIB += -L$(REL_PATH)/slave/only2fae/audio/lib/$(CROSS)/HuaweiLite/aacenc/lib -laacenc
+
