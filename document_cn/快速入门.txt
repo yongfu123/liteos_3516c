@@ -1,0 +1,131 @@
+MobileCam_SDK 安装以及升级快速入门
+
+注意：本文以MobileCam_SDK 描述为例，未有特殊说明，MobileCam_SDK 与Hi3516CV200、Hi3518EV200一致。
+
+
+第一章 MobileCam_SDK 版本升级操作说明
+   如果您是首次安装本SDK，请直接参看第2章。
+   
+第二章 首次安装SDK
+1、MobileCam_SDK 包位置
+    在"01.software/board"目录下，您可以看到一个 MobileCam_SDK_Vx.x.x.x_rel.tar 的文件，
+该文件就是MobileCam的软件开发包。
+
+2、解压缩SDK包
+    在linux服务器上（或者一台装有linux的PC上，主流的linux发行版本均可以），使用命令：tar -xvf MobileCam_SDK_Vx.x.x.x_rel.tar ，
+解压缩该文件，可以得到一个MobileCam_SDK_Vx.x.x.x_rel目录。
+
+3、在linux服务器上安装交叉编译器
+    安装uclibc交叉编译器（注意，需要有sudo权限或者root权限）：
+    进入 MobileCam_SDK_V1.0.0.2_rel/osdrv/hi3518ev200/toolchain目录，运行./arm-hisiv500-linux.install 即可，参见osdrv目录下readme。
+    如果开发包不存在上述toolchain目录，可到华为开发者社区http://developer.huawei.com下载 HiSilicon SDK编译器(Huawei LiteOS)。
+    
+4、编译osdrv
+    参见osdrv目录下readme
+
+
+第三章、安装、升级MobileCam_SDK板开发环境
+    # 如果您使用的MobileCam_SDK的DEMO板，可以按照以下步骤烧写u-boot，用户程序bin文件以及文件系统，以下步骤均使用网络来更新。
+    # 通常，您拿到的单板中已经有u-boot，如果没有的话，就需要使用python进行烧写。
+    # 更详细的操作步骤及说明，请参见01.software\board\document_cn目录下的《Hi35xx Huawei LiteOS开发环境用户指南》。
+    # 以下操作假设您的单板上已经有u-boot,使用网口烧写uboot、程序bin文件到Flash中。
+    # Demo单板默认为从SPI Nor Flash启动。
+
+1、配置tftp服务器
+    # 可以使用任意的tftp服务器，将package/boot下的相关文件，以及mapi/sample程序生成的bin文件拷贝到tftp服务器目录下。
+    
+2、参数配置
+    # 单板上电后，敲任意键进入u-boot。设置serverip（即tftp服务器的ip）、ipaddr（单板ip）和ethaddr（单板的MAC地址）等。使用方式如下：
+    setenv serverip xx.xx.xx.xx
+    setenv ipaddr xx.xx.xx.xx 
+    setenv ethaddr xx:xx:xx:xx:xx:xx
+    setenv netmask xx.xx.xx.xx
+    setenv gatewayip xx.xx.xx.xx
+    ping serverip，确保网络畅通。
+
+3、烧写映像文件到SPI Nor Flash
+    以8M SPI Nor Flash为例。
+    1）地址空间说明
+        |      1M       |      5M       |      2M       |
+        |---------------|---------------|---------------|
+        |     boot      |   sample_xxx  |     jffs2     |
+
+        以下的操作均基于图示的地址空间分配，您也可以根据实际情况进行调整。
+    2）烧写u-boot		
+        sf probe 0
+        mw.b 82000000 ff 100000
+        tftp 0x82000000 u-boot-hi3518ev200.bin
+        sf probe 0
+        sf erase 0 100000
+        sf write 82000000 0 100000	
+        reset
+    3）烧写bin
+        tftp 0x82000000 sample_xxx.bin
+        sf probe 0
+        sf erase 100000 500000
+        sf write 82000000  100000 500000
+	setenv bootcmd 'sf probe 0;sf read 0x80008000  0x100000 0x500000;go 0x80008000'
+        saveenv
+        （以上命令是烧写到SPI Nor flash中，并设置从SPI Nor flash启动，调试时也可以直接烧写到内存，从内存启动：tftp 0x80008000 sample.bin;go 0x80008000 ）
+        注意：0x80008000为OS固定的启动地址，不能修改。由于目前u-boot的运行地址是0x80800000,如果sample_xxx.bin超过5M，则需要把u-boot运行地址往后移,否则sample_xxx.bin会覆盖u-boot，导致u-boot无法运行。
+        
+    4)烧写文件系统
+        mw.b 82000000 ff 800000
+        tftp 0x82000000 rootfs_hi3518ev200_64k.jffs2
+        sf probe 0
+        sf erase 500000 800000
+        sf write 82000000 500000 800000
+	注意：HuaweiLite OS没有像Linux那样的根文件系统，文件系统的目录结构请根据您的具体情况自行制作
+    5）设置启动参数
+        无
+		
+4、启动新系统
+    reset	# 重启进入新系统。
+
+    
+第四章、使用SDK和DEMO板进行开发
+1、开启HuaweiLite OS下的网络
+    # 设置网络(设置之前请在程序中调用网络的初始化代码tcpip_init(),hisi_eth_init(), netif_set_up())
+    ifconfig en1 hw ether xx:xx:xx:xx:xx:xx;
+    ifconfig en1 xx.xx.xx.xx netmask xx.xx.xx.xx;
+    ifconfig en1 gateway xx.xx.xx.xx
+    # 然后ping一下其他机器，如无意外，网络将能正常工作。
+
+2、使用NFS文件系统进行开发
+    # 在开发阶段，推荐使用NFS作为开发环境，可以省去重新制作和烧写文件系统的工作。
+    # 挂载NFS文件系统的操作命令：
+    mount IP:PATH /nfs nfs
+    # 然后就可以在/nfs目录下访问服务器上的文件，并进行开发工作。
+
+3、开启telnet服务
+    # 网络正常后，执行telnet命令，通过telnet登录到单板即可使用。
+
+4、运行MAPI业务
+    MAPI业务和HuaweiLite OS一起生成烧到单板的sample_xxx.bin文件，详细流程请参考sample代码。
+    如果需要配置网络、NFS之后再运行sample，可以把sample里面调用app_main的操作修改成shell命令, 比如shell命令为“sample”，等配置完网络后，再手动执行sample命令。
+    
+5、替换sensor
+   #sample代码用默认使用的是ov9732的sensor，如果需要替换sensor，要修改2个地方：
+   #1. sdk_init.c中sensor_type的值；
+   #2. sample下面的Makefile.param中的SENSOR_TYPE值;
+    
+第五章 地址空间分配与使用
+1、DDR内存管理说明
+    1）所有DDR内存中，一部分由操作系统管理，称为OS内存；另一部分由MMZ模块管理，供媒体业务单独使用，称为MMZ内存。
+    2）OS内存起始地址为0x80008000，MMZ内存起始地址默认为(Hi3518EV200: 0x82000000;Hi3516CV200:0x84000000)，OS内存起始地址固定，不能修改。MMZ内存起始地址可以根据客户的场景业务修改。
+    3）MMZ内存由MMZ内核模块管理，MMZ模块初始化时，通过参数指定其大小。
+    4）请注意MMZ内存地址范围不能与OS内存重叠。
+
+2、DEMO板DDR内存管理示意
+    以容量为64MBytes的DDR内存为例，以下为根据本文档和SDK默认配置得到的内存管理示意图：
+    
+    DDR:                                                           
+    
+      -----|-------|  0x80000000   # Memory managed by OS.              
+     32M   | OS    |                                                 
+           |       |                                                 
+      -----|-------|  0x82000000   # Memory managed by MMZ block anonymous.          
+     32M   | MMZ   |                                                 
+           |       |                                                 
+      -----|-------|  0x84000000   # Memory managed by MMZ block jpeg.    
+                   
